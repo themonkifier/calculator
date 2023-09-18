@@ -12,8 +12,15 @@ int main(int argc, char* argv[])
 {
     std::string input;
 
-    std::cin >> input;
+    std::getline(std::cin, input);
     
+    auto tokens = convert_to_rpn(tokenize(input));
+    while (tokens.size() > 0)
+    {
+        std::cout << tokens.front() << std::endl;
+        tokens.pop_front();
+    }
+
     std::cout << simplify_rpn(convert_to_rpn(tokenize(input))) << std::endl;
 
     return 0;
@@ -22,26 +29,41 @@ int main(int argc, char* argv[])
 std::deque<std::string> tokenize(std::string input)
 {
     std::deque<std::string> tokens;
-    
     input.erase(std::remove(input.begin(), input.end(), ' '), input.end());
+    input.erase(std::remove(input.begin(), input.end(), ','), input.end());
+    
+    enum CurrentType type;
+    std::string token;
 
-    for (int i = 0; i < input.size(); i++)
+    int i = 0, previous = 0;
+    do
     {
-        input.substr(it, it + 2);
-    }
+        type = current_type(input, i);
+        while (i < input.length() - 1 && type == current_type(input, i + 1)) i++;
+        tokens.push_back(input.substr(previous, i - previous + 1));
+        previous = ++i;
+    } while (i < input.size());
 
     return tokens;
+}
+
+enum CurrentType current_type(std::string str, int i)
+{
+    if (is_number(str.substr(i, 1))) return Number;
+    else if (is_operator(str.substr(i, 1))) return Operator;
+    else if (str[i] == '(') return Parenthesis;
+    return Function;
 }
 
 std::deque<std::string> convert_to_rpn(std::deque<std::string> tokens)
 {
     std::stack<std::string> operators;
-    std::stack<double> nums;
     std::deque<std::string> output;
     std::string token;
 
     while (!tokens.empty())
     {
+
         token = tokens.front();
         tokens.pop_front();
 
@@ -51,7 +73,7 @@ std::deque<std::string> convert_to_rpn(std::deque<std::string> tokens)
         {
             std::string o1 = token;
             std::string o2;
-            while (!operators.empty() && (o2 = operators.top()) != "(" && (precedence(o2, o1) == 1 || (precedence(o1, o2) == 0 && (is_operator(token) && o1 != "^"))))
+            while (!operators.empty() && (o2 = operators.top()) != "(" && (precedence(o1, o2) == 1 || (precedence(o1, o2) == 0 && (is_operator(token) && o1 != "^"))))
             {
                 output.push_back(operators.top());
                 operators.pop();
@@ -88,11 +110,6 @@ std::deque<std::string> convert_to_rpn(std::deque<std::string> tokens)
                 output.push_back(operators.top());
                 operators.pop();
             }
-            if (!operators.empty() && is_operator(operators.top()))
-            {
-                output.push_back(operators.top());
-                operators.pop();
-            }
         }
     }
     
@@ -117,10 +134,11 @@ bool is_operator(std::string op)
 
 bool is_number(std::string num)
 {
-    char *p;
-    strtod(num.c_str(), &p);
-
-    return !*p;
+    for (std::string::iterator it = num.begin(); it != num.end(); it++)
+    {
+        if (!isdigit(*it) && *it != '.') return false;
+    }
+    return true;
 }
 
 bool is_function(std::string op)
@@ -166,24 +184,28 @@ double simplify_rpn(std::deque<std::string> tokens)
     {
         token = tokens.front();
         tokens.pop_front();
+        std::cout << token << "!" << std::endl;
         if (is_number(token)) nums.push(std::stod(token));
-        else if (is_operator)
+        else if (is_operator(token))
         {
-            double num1 = std::stod(tokens.front());
+            double num1 = nums.top();
             tokens.pop_front();
-            double num2 = std::stod(tokens.front());
+            double num2 = nums.top();
             tokens.pop_front();
+            std::cout << token << "!!" << std::endl;
 
             nums.push(evaluate(num1, token[0], num2));
+            std::cout << nums.top() << "!!!" << std::endl;
         }
         else
         {
-            double num = std::stod(tokens.front());
+            double num = nums.top();
             tokens.pop_front();
 
             nums.push(evaluate(token, num));
         }
     }
+    return nums.top();
 }
 
 int find_operator(std::deque<std::string> tokens)
@@ -214,6 +236,7 @@ double evaluate(double num1, char op, double num2)
         case '^':
         return pow(num1, num2);
     }
+    return -INFINITY;
 }
 
 double evaluate(std::string f, double num)
@@ -249,5 +272,5 @@ double evaluate(std::string f, double num)
     else if (f == "exp") return exp(num);
     else if (f == "sqrt") return sqrt(num);
     else if (f == "cbrt") return cbrt(num);
-    return (-1)/0;
+    return -INFINITY;
 }

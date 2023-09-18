@@ -1,11 +1,21 @@
 #ifndef CALCULATOR_HPP
 #define CALCULATOR_HPP
 
+enum CurrentType
+{
+    Number,
+    Operator,
+    Parenthesis,
+    Function
+};
+
 /**
  * @brief Splits the input string into tokens
  * 
  */
 std::deque<std::string> tokenize(std::string);
+
+enum CurrentType current_type(std::string, int);
 
 /**
  * @brief Converts the input token deque into Reverse Polish Notation
@@ -38,8 +48,8 @@ bool is_function(std::string);
 /**
  * @brief Returns whether one operator has precedence over the other
  * @return `-1` if the first operator has precedence,
- * @return `0` if the second operator has precedence,
- * @return `1` otherwise
+ * @return `0` if the operators have equal precedence,
+ * @return `1` if the second operator has precedence
 */
 int precedence(std::string, std::string);
 
