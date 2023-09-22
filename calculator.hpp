@@ -1,8 +1,20 @@
 #ifndef CALCULATOR_HPP
 #define CALCULATOR_HPP
 
+#include <iostream>
+#include <algorithm>
+#include <deque>
+#include <complex>
+
+#include <cstdlib>
+#include <cmath>
+
+/**
+ * @brief The current type of a character in the input string
+*/
 enum CurrentType
 {
+    None,
     Number,
     Operator,
     Parenthesis,
@@ -11,21 +23,30 @@ enum CurrentType
 
 /**
  * @brief Splits the input string into tokens
+ * @param input The input string
+ * @return the input string, split into individual tokens
  * 
  */
 std::deque<std::string> tokenize(std::string);
 
+/**
+ * @brief Gets the type of index `i` in string `input` (as a `CurrentType`)
+ * @param input The input string, to be checked
+ * @param i The index to check
+*/
 enum CurrentType current_type(std::string, int);
 
 /**
  * @brief Converts the input token deque into Reverse Polish Notation
- * 
+ * @param tokens The tokens to be converted to RPN
+ * @return The tokens, ordered in RPN
  */
 std::deque<std::string> convert_to_rpn(std::deque<std::string>);
 
 /**
  * @brief Returns whether or not the input string is an operator
  *  ('+', '-', '*', '/', '%', '^')
+ * @param op The string to check
  * @return `true` If the string is an operator,
  * @return `false` otherwise
  */
@@ -33,6 +54,7 @@ bool is_operator(std::string);
 
 /**
  * @brief Returns whether or not the input string is a number
+ * @param num The string to check
  * @return `true` If the string is a number,
  * @return `false` otherwise
  */
@@ -40,39 +62,42 @@ bool is_number(std::string);
 
 /**
  * @brief Returns whether or not the input string is a function
+ * @param f the string to check
  * @return `true` If the string is a function,
  * @return `false` otherwise
  */
 bool is_function(std::string);
 
 /**
- * @brief Returns whether one operator has precedence over the other
- * @return `-1` if the first operator has precedence,
- * @return `0` if the operators have equal precedence,
- * @return `1` if the second operator has precedence
+ * @brief Returns the relative precedence of the given operator
+ * @param op The operator to check
+ * @return `2` if operator is "^",
+ * @return `1` if operator is "*", "/", "%",
+ * @return `0` if operator is "+", "-",
+ * @return `-1` otherwise
 */
-int precedence(std::string, std::string);
+int precedence(std::string);
 
 /**
  * @brief Simplifies a Reverse Polish Notation deque
+ * @param tokens The tokens, in RPN, to evaluate
+ * @return The final result of evaluating the equation
 */
 double simplify_rpn(std::deque<std::string>);
 
 /**
- * @brief Returns the address of the first operator if the input deque has
- *  an operator, or -1 if there is none
- * @return The `index` of the first operator if the deque has an operator,
- * @return `-1` otherwise
-*/
-int find_operator(std::deque<std::string>);
-
-/**
- * @brief Evaluates the given expression
+ * @brief Evaluates the given expression (ex. `1` `+` `2`)
+ * @param num1 The first operand
+ * @param op The operator
+ * @param num2 The second operand
+ * @return The value of (`num1`) (`op`) (`num2`)
 */
 double evaluate(double, char, double);
 
 /**
- * @brief Evaluates the given expression
+ * @brief Evaluates the given expression (ex. `sqrt`(`9`))
+ * @param f The function
+ * @param num The input to the function
 */
 double evaluate(std::string, double);
 
