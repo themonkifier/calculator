@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <cmath>
 
+#include "constants.hpp"
+
 /**
  * @brief The current type of a character in the input string
 */
@@ -19,6 +21,16 @@ enum CurrentType
     Operator,
     Parenthesis,
     Function
+};
+
+/**
+ * @brief The format of numbers, for printing at the end
+ */
+enum PrintFormat
+{
+    Default,
+    Commas,
+    Spaces
 };
 
 /**
@@ -33,7 +45,7 @@ std::deque<std::string> tokenize(std::string);
  * @brief Gets the type of index `i` in string `input` (as a `CurrentType`)
  * @param input The input string, to be checked
  * @param i The index to check
-*/
+ */
 enum CurrentType current_type(std::string, int);
 
 /**
@@ -75,14 +87,14 @@ bool is_function(std::string);
  * @return `1` if operator is "*", "/", "%",
  * @return `0` if operator is "+", "-",
  * @return `-1` otherwise
-*/
+ */
 int precedence(std::string);
 
 /**
  * @brief Simplifies a Reverse Polish Notation deque
  * @param tokens The tokens, in RPN, to evaluate
  * @return The final result of evaluating the equation
-*/
+ */
 double simplify_rpn(std::deque<std::string>);
 
 /**
@@ -91,14 +103,14 @@ double simplify_rpn(std::deque<std::string>);
  * @param op The operator
  * @param num2 The second operand
  * @return The value of (`num1`) (`op`) (`num2`)
-*/
+ */
 double evaluate(double, char, double);
 
 /**
  * @brief Evaluates the given expression (ex. `sqrt`(`9`))
  * @param f The function
  * @param num The input to the function
-*/
+ */
 double evaluate(std::string, double);
 
 #endif

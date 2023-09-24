@@ -1,6 +1,7 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef CONSTANTS_HPP
+#define CONSTANTS_HPP
 
-#define c 299792458
+#define CONSTS_C 299792458 // m/s
+#define CONSTS_H 6.62607015e-34 // J*s
 
 #endif

@@ -11,6 +11,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+
+
 std::deque<std::string> tokenize(std::string input)
 {
     std::deque<std::string> tokens;
@@ -29,6 +31,15 @@ std::deque<std::string> tokenize(std::string input)
             it = input.erase(it);
             std::string e = std::to_string(M_E);
             for (auto str_it = e.rbegin(); str_it != e.rend(); str_it++) it = input.insert(it, *str_it);
+            it = input.insert(it, '\''); /* marker to show that a constant was inserted */
+        }
+        else if (it != input.end() - 1 && *it == 'p' && *(it + 1) == 'i')
+        {
+            it = input.erase(it);
+            it = input.erase(it);
+            std::string e = std::to_string(M_PI);
+            for (auto str_it = e.rbegin(); str_it != e.rend(); str_it++) it = input.insert(it, *str_it);
+            it = input.insert(it, '\'');
         }
     }
 
@@ -39,7 +50,7 @@ std::deque<std::string> tokenize(std::string input)
     int i = 0, previous = 0;
     do
     {
-        std::cout << input[i] << " " << (type = current_type(input, i)) << std::endl;
+        type = current_type(input, i);
 
         if (!(type == Operator || type == Parenthesis)) while (i < input.length() - 1 && type == current_type(input, i + 1)) i++;
         tokens.push_back(input.substr(previous, i - previous + 1));
@@ -50,20 +61,25 @@ std::deque<std::string> tokenize(std::string input)
     for (auto it = tokens.begin(); it != tokens.end(); it++) std::cout << *it << " ";
     std::cout << std::endl;
 
-    /* deals with negative signs ("-"s that are and before numbers after operators/open parentheses/the beginning of the string) */
+    /* deals with negative signs ("-"s that are and before numbers after operators/open parentheses/the beginning of the string)
+       and inserts "*"s where necessary */
     auto it = tokens.begin();
     if (*it == "-")
     {
         it = tokens.erase(it);
         *it = "-" + *it;
     }
-
     for (; it != tokens.end();)
     {
         if (*it == "-" && (is_operator(*(it - 1)) || *(it - 1) == "(") && (is_number(*(it + 1)) || is_function(*(it + 1))))
         {
             it = tokens.erase(it);
             *it = "-" + *it;
+        }
+        else if (is_number(*it) && (*(it + 1) == "(" || is_function(*(it + 1))))
+        {
+            it++;
+            it = tokens.insert(it, "*");
         }
         else it++;
     }
@@ -76,6 +92,7 @@ enum CurrentType current_type(std::string str, int i)
     if (is_number(str.substr(i, 1))) return Number;
     else if (is_operator(str.substr(i, 1))) return Operator;
     else if (str[i] == '(' || str[i] == ')') return Parenthesis;
+    else if (str[i] == '\'') return None;
     return Function;
 }
 
@@ -298,6 +315,6 @@ double evaluate(std::string f, double num)
     else if (f == "cbrt") return sign * cbrt(num);
     else if (f == "log") return sign * log10(num);
     else if (f == "ln") return sign * log(num);
-    else if (f == "lg") return sign * log2(num);    
+    else if (f == "lg") return sign * log2(num);
     return -INFINITY;
 }
