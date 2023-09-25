@@ -43,9 +43,6 @@ std::deque<std::string> tokenize(std::string input)
         }
     }
 
-    for (auto it = input.begin(); it != input.end(); it++) std::cout << *it;
-    std::cout << std::endl;
-
     /* split into individual tokens */
     int i = 0, previous = 0;
     do
@@ -57,19 +54,16 @@ std::deque<std::string> tokenize(std::string input)
 
         previous = ++i;
     } while (i < input.size());
-    
-    for (auto it = tokens.begin(); it != tokens.end(); it++) std::cout << *it << " ";
-    std::cout << std::endl;
 
-    /* deals with negative signs ("-"s that are and before numbers after operators/open parentheses/the beginning of the string)
+    /* deals with negative signs ("-"s that are before numbers and after operators/open parentheses/the beginning of the string)
        and inserts "*"s where necessary */
     auto it = tokens.begin();
-    if (*it == "-")
+    if (it != tokens.end() - 1 && *it == "-")
     {
         it = tokens.erase(it);
         *it = "-" + *it;
     }
-    for (; it != tokens.end();)
+    while (it != tokens.end() - 1)
     {
         if (*it == "-" && (is_operator(*(it - 1)) || *(it - 1) == "(") && (is_number(*(it + 1)) || is_function(*(it + 1))))
         {
@@ -101,9 +95,6 @@ std::deque<std::string> convert_to_rpn(std::deque<std::string> tokens)
     std::deque<std::string> operators;
     std::deque<std::string> output;
     std::string token;
-
-    for (auto it = tokens.begin(); it != tokens.end(); it++) std::cout << *it << " ";
-    std::cout << std::endl;
 
     while (!tokens.empty())
     {
@@ -159,9 +150,6 @@ std::deque<std::string> convert_to_rpn(std::deque<std::string> tokens)
         operators.pop_back();
     }
 
-    for (auto it = output.begin(); it != output.end(); it++) std::cout << *it << " ";
-    std::cout << std::endl;
-
     return output;
 }
 
@@ -216,9 +204,9 @@ int precedence(std::string op)
     return -1;
 }
 
-double simplify_rpn(std::deque<std::string> tokens)
+num_t simplify_rpn(std::deque<std::string> tokens)
 {
-    std::deque<double> nums;
+    std::deque<num_t> nums;
     std::string token;
 
     while (tokens.size() > 0)
@@ -227,23 +215,20 @@ double simplify_rpn(std::deque<std::string> tokens)
         tokens.pop_front();
         if (is_number(token))
         {
-            // double num = std::stod(token);
-            // std::complex<double> num;
-            // token >> num;
             nums.push_back(std::stod(token));
         }
         else if (is_operator(token))
         {
-            double num1 = nums.back();
+            num_t num1 = nums.back();
             nums.pop_back();
-            double num2 = nums.back();
+            num_t num2 = nums.back();
             nums.pop_back();
 
             nums.push_back(evaluate(num2, token[0], num1));
         }
         else
         {
-            double num = nums.back();
+            num_t num = nums.back();
             nums.pop_back();
 
             nums.push_back(evaluate(token, num));
@@ -252,7 +237,7 @@ double simplify_rpn(std::deque<std::string> tokens)
     return nums.back();
 }
 
-double evaluate(double num1, char op, double num2)
+num_t evaluate(num_t num1, char op, num_t num2)
 {
     switch (op)
     {
@@ -273,7 +258,7 @@ double evaluate(double num1, char op, double num2)
     return -INFINITY;
 }
 
-double evaluate(std::string f, double num)
+num_t evaluate(std::string f, num_t num)
 {
     int sign = 1;
     if (f.size() > 0 && f[0] == '-')
@@ -282,39 +267,39 @@ double evaluate(std::string f, double num)
         f = f.substr(1);
     }
 
-    if (f == "sin") return sign * sin(num);
-    else if (f == "cos") return sign * cos(num);
-    else if (f == "tan") return sign * tan(num);
-    else if (f == "arcsin" || f == "asin") return sign * asin(num);
-    else if (f == "arccos" || f == "acos") return sign * acos(num);
-    else if (f == "arctan" || f == "atan") return sign * atan(num);
+    if (f == "sin") return sign * sinl(num);
+    else if (f == "cos") return sign * cosl(num);
+    else if (f == "tan") return sign * tanl(num);
+    else if (f == "arcsin" || f == "asin") return sign * asinl(num);
+    else if (f == "arccos" || f == "acos") return sign * acosl(num);
+    else if (f == "arctan" || f == "atan") return sign * atanl(num);
     
-    else if (f == "csc") return sign * 1/sin(num);
-    else if (f == "sec") return sign * 1/cos(num);
-    else if (f == "cot") return sign * 1/tan(num);
-    else if (f == "arccsc" || f == "acsc") return sign * asin(1/num);
-    else if (f == "arcsec" || f == "asec") return sign * acos(1/num);
-    else if (f == "arccot" || f == "acot") return sign * atan(1/num);
+    else if (f == "csc") return sign * 1/sinl(num);
+    else if (f == "sec") return sign * 1/cosl(num);
+    else if (f == "cot") return sign * 1/tanl(num);
+    else if (f == "arccsc" || f == "acsc") return sign * asinl(1/num);
+    else if (f == "arcsec" || f == "asec") return sign * acosl(1/num);
+    else if (f == "arccot" || f == "acot") return sign * atanl(1/num);
     
-    else if (f == "sinh") return sign * sinh(num);
-    else if (f == "cosh") return sign * cosh(num);
-    else if (f == "tanh") return sign * tanh(num);
-    else if (f == "arcsinh" || f == "asinh") return sign * asinh(num);
-    else if (f == "arccosh" || f == "acosh") return sign * acosh(num);
-    else if (f == "arctanh" || f == "atanh") return sign * atanh(num);
+    else if (f == "sinh") return sign * sinhl(num);
+    else if (f == "cosh") return sign * coshl(num);
+    else if (f == "tanh") return sign * tanhl(num);
+    else if (f == "arcsinh" || f == "asinh") return sign * asinhl(num);
+    else if (f == "arccosh" || f == "acosh") return sign * acoshl(num);
+    else if (f == "arctanh" || f == "atanh") return sign * atanhl(num);
     
-    else if (f == "csch") return sign * 1/sinh(num);
-    else if (f == "sech") return sign * 1/cosh(num);
-    else if (f == "coth") return sign * 1/tanh(num);
-    else if (f == "arccsch" || f == "acsch") return sign * asinh(1/num);
-    else if (f == "arcsech" || f == "asech") return sign * acosh(1/num);
-    else if (f == "arccoth" || f == "acoth") return sign * atanh(1/num);
+    else if (f == "csch") return sign * 1/sinhl(num);
+    else if (f == "sech") return sign * 1/coshl(num);
+    else if (f == "coth") return sign * 1/tanhl(num);
+    else if (f == "arccsch" || f == "acsch") return sign * asinhl(1/num);
+    else if (f == "arcsech" || f == "asech") return sign * acoshl(1/num);
+    else if (f == "arccoth" || f == "acoth") return sign * atanhl(1/num);
     
-    else if (f == "exp") return sign * exp(num);
-    else if (f == "sqrt") return sign * sqrt(num);
-    else if (f == "cbrt") return sign * cbrt(num);
-    else if (f == "log") return sign * log10(num);
-    else if (f == "ln") return sign * log(num);
-    else if (f == "lg") return sign * log2(num);
+    else if (f == "exp") return sign * expl(num);
+    else if (f == "sqrt") return sign * sqrtl(num);
+    else if (f == "cbrt") return sign * cbrtl(num);
+    else if (f == "log") return sign * log10l(num);
+    else if (f == "ln") return sign * logl(num);
+    else if (f == "lg") return sign * log2l(num);
     return -INFINITY;
 }

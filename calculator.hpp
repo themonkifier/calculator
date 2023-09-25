@@ -11,6 +11,8 @@
 
 #include "constants.hpp"
 
+typedef long double num_t;
+
 /**
  * @brief The current type of a character in the input string
 */
@@ -95,7 +97,7 @@ int precedence(std::string);
  * @param tokens The tokens, in RPN, to evaluate
  * @return The final result of evaluating the equation
  */
-double simplify_rpn(std::deque<std::string>);
+num_t simplify_rpn(std::deque<std::string>);
 
 /**
  * @brief Evaluates the given expression (ex. `1` `+` `2`)
@@ -104,13 +106,13 @@ double simplify_rpn(std::deque<std::string>);
  * @param num2 The second operand
  * @return The value of (`num1`) (`op`) (`num2`)
  */
-double evaluate(double, char, double);
+num_t evaluate(num_t, char, num_t);
 
 /**
  * @brief Evaluates the given expression (ex. `sqrt`(`9`))
  * @param f The function
  * @param num The input to the function
  */
-double evaluate(std::string, double);
+num_t evaluate(std::string, num_t);
 
 #endif
