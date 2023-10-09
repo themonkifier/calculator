@@ -1,3 +1,0 @@
-- keeps the formatting of numbers (google makes 10,000 into 10000 in the output... fail)
-- allows formatting with spaces (10 000) which is the recommended standard by like every standards organization 🥱🥱🥱🥱
-- don't think google lets you do acsch but it might idk
