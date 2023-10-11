@@ -28,10 +28,10 @@ typedef struct Unit
     {
         symbol = "";
 
-        quantity_magnitudes;
+        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = 0;
 
-        prefix_magnitudes;
+        //prefix_magnitudes;
         for (int i = 0; i < 7; i++) prefix_magnitudes[i] = 0;
     }
 
@@ -39,10 +39,10 @@ typedef struct Unit
     {
         symbol = _symbol;
 
-        quantity_magnitudes;
+        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = 0;
 
-        prefix_magnitudes;
+        //prefix_magnitudes;
         for (int i = 0; i < 7; i++) prefix_magnitudes[i] = 0;
     }
 
@@ -50,10 +50,10 @@ typedef struct Unit
     {
         symbol = _symbol;
 
-        quantity_magnitudes;
+        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = _quantity_magnitudes[i];
 
-        prefix_magnitudes;
+        //prefix_magnitudes;
         for (int i = 0; i < 7; i++) prefix_magnitudes[i] = _magnitudes[i];
     }
 
@@ -148,7 +148,7 @@ typedef struct Number
     Number()
     {
         val = 0;
-        unit;
+        //unit;
     }
 
     /**
@@ -266,5 +266,6 @@ extern std::unordered_set<Unit>::iterator nullunit;
 void setup_units();
 
 std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit);
+bool unit_in_units(Unit unit);
 
 #endif

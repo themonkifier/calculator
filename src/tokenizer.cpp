@@ -85,6 +85,36 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
 {
     std::unordered_set<Unit>::iterator unit;
 
+    for (auto it = tokens.begin() + 1; it != tokens.end(); it++)
+    {
+        if (it->index() == 1 && unit_in_units(Unit(std::get<1>(*it))) && (it - 1)->index() == 1
+        && (unit_in_units(Unit(std::get<1>(*(it - 1)))) || is_operator(std::get<1>(*(it - 1)))))
+        {
+            it = tokens.insert(it, {"(", Number(1)}) + 2;
+            // while (unmatched parentheses or ^s)
+            std::size_t parentheses = 0;
+            while (it != tokens.end() && (parentheses > 0 || (it != tokens.end() - 1 && ((it + 1)->index() == 0 || (std::get<1>(*(it + 1)) == "("
+                    || std::get<1>(*(it + 1)) == ")" || std::get<1>(*(it + 1)) == "^")))))
+            {
+                if ((it)->index() == 1 && (std::get<1>(*(it)) == "^"))
+                {
+                    // it++;
+                }
+                else if (std::get<1>(*(it)) == "(")
+                {
+                    parentheses++;
+                }
+                else if (std::get<1>(*(it)) == ")")
+                {
+                    parentheses--;
+                }
+                it++;
+            }
+            if (it == tokens.end()) tokens.push_back(")");
+            else it = tokens.insert(it + 1, ")");
+        }
+    }
+
     for (auto it = tokens.begin(); it != tokens.end();)
     {
         if (it->index() == 1 && (unit = find_unit_in_units(Unit(std::get<1>(*it)))) != nullunit)
@@ -102,7 +132,6 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
                     if (it == tokens.begin()) throw std::runtime_error("malformed expression: operator at the beginning of the input");
                     std::string op = std::get<1>(*(it));
                     it = tokens.erase(it) - 1; // clear operator
-                    // it = tokens.erase(it) - 1; // clear numerator unit
                     if (op == "*") std::get<0>(*(it)).unit *= (*unit);
                     else if (op == "/") std::get<0>(*(it)).unit /= (*unit);
                 }
@@ -164,7 +193,7 @@ std::deque<Token> tokenize(std::string input, PrintFormat &pf)
     enum CurrentType type = CurrentType::None;
 
     /* split into individual tokens */
-    int i = 0, previous = 0;
+    std::size_t i = 0, previous = 0;
     do
     {
         type = current_type(input, i);

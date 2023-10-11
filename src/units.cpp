@@ -1,4 +1,5 @@
 #include "../include/units.hpp"
+#include <iostream>
 
 std::unordered_map<std::string, int> prefixes;
 std::unordered_set<Unit> units;
@@ -134,7 +135,7 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
     std::string temp;
     std::vector<std::string> units_in_symbol;
 
-    int i = 0, previous = 0;
+    std::size_t i = 0, previous = 0;
     do
     {
         while (i < symbol.size() && (symbol[i] == ' ' || symbol[i] == '*' || symbol[i] == '/')) i++;
@@ -142,6 +143,7 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
         if (isalpha(symbol[i])) while (i < symbol.size() && isalpha(symbol[i])) i++;
         
         // if ((temp = symbol.substr(previous, i)) != "asdfhj")
+        temp = symbol.substr(previous, i);
         units_in_symbol.push_back(temp);
 
         previous = i++;
@@ -154,12 +156,19 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
     }
 
     // auto it = std::find_if(units.begin(), units.end(), [unit](const Unit& o) {return unit.symbol == o.symbol;});
-    return std::find_if(units.begin(), units.end(), [unit](const Unit& o)
+    if (units_in_symbol.size() < 1) return std::find_if(units.begin(), units.end(), [unit](const Unit& o)
     {
-        for (int i = 0; i < 7; i++)
+        // std::cout << unit << " " << o << std::endl;
+        for (std::size_t i = 0; i < 7; i++)
         {
             if (unit.prefix_magnitudes[i] != o.prefix_magnitudes[i]) return false;
         }
         return true;
     });
+    return std::find_if(units.begin(), units.end(), [unit](const Unit& o){return unit.symbol == o.symbol;});
+}
+
+bool unit_in_units(Unit unit)
+{
+    return std::find_if(units.begin(), units.end(), [unit](const Unit& o){return unit.symbol == o.symbol;}) != nullunit;
 }
