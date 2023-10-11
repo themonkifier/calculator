@@ -93,12 +93,12 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
             it = tokens.insert(it, {"(", Number(1)}) + 2;
             // while (unmatched parentheses or ^s)
             std::size_t parentheses = 0;
-            while (parentheses > 0 || (it != tokens.end() - 1 && ((it + 1)->index() == 0 || (std::get<1>(*(it + 1)) == "("
-                    || std::get<1>(*(it + 1)) == ")" || std::get<1>(*(it + 1)) == "^"))))
+            while (it != tokens.end() && (parentheses > 0 || (it != tokens.end() - 1 && ((it + 1)->index() == 0 || (std::get<1>(*(it + 1)) == "("
+                    || std::get<1>(*(it + 1)) == ")" || std::get<1>(*(it + 1)) == "^")))))
             {
                 if ((it)->index() == 1 && (std::get<1>(*(it)) == "^"))
                 {
-                    it++;
+                    // it++;
                 }
                 else if (std::get<1>(*(it)) == "(")
                 {
@@ -110,7 +110,8 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
                 }
                 it++;
             }
-            it = tokens.insert(it, ")");
+            if (it == tokens.end()) tokens.push_back(")");
+            else it = tokens.insert(it + 1, ")");
         }
     }
 
