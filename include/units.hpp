@@ -22,49 +22,39 @@ typedef struct Unit
 {
     std::string symbol; // m
     num_t quantity_magnitudes[7]; // [Time, Length, Mass, Current, Temperature, Amount of substance, Intensity]
-    int prefix_magnitudes[7]; // [Time, Length, Mass, Current, Temperature, Amount of substance, Intensity]
+    int prefix_magnitude; // k from km -> 3 ()
 
     Unit()
     {
         symbol = "";
-
-        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = 0;
-
-        //prefix_magnitudes;
-        for (int i = 0; i < 7; i++) prefix_magnitudes[i] = 0;
+        prefix_magnitude = 0;
     }
 
     Unit(std::string _symbol)
     {
         symbol = _symbol;
-
-        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = 0;
-
-        //prefix_magnitudes;
-        for (int i = 0; i < 7; i++) prefix_magnitudes[i] = 0;
+        prefix_magnitude = 0;
     }
 
-    Unit(std::string _symbol, num_t _quantity_magnitudes[7], int _magnitudes[7])
+    Unit(std::string _symbol, num_t _quantity_magnitudes[7], int _prefix_magnitude)
     {
         symbol = _symbol;
-
-        //quantity_magnitudes;
         for (int i = 0; i < 7; i++) quantity_magnitudes[i] = _quantity_magnitudes[i];
-
-        //prefix_magnitudes;
-        for (int i = 0; i < 7; i++) prefix_magnitudes[i] = _magnitudes[i];
+        prefix_magnitude = _prefix_magnitude;
     }
 
-    inline bool operator==(const Unit& o) const
+    inline bool operator==(const Unit& o) const noexcept
     {
-        return symbol == o.symbol;
+        for (int i = 0; i < 7; i++) if (quantity_magnitudes[i] != o.quantity_magnitudes[i]) return false;
+        return symbol == o.symbol && prefix_magnitude == o.prefix_magnitude;
     }
 
     Unit& operator*=(const Unit& rhs)
     {
         for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] += rhs.quantity_magnitudes[i];
+        this->prefix_magnitude += rhs.prefix_magnitude;
         if (this->symbol != "") this->symbol += "*";
         this->symbol += rhs.symbol;
         return *this;
@@ -79,6 +69,7 @@ typedef struct Unit
     Unit& operator/=(const Unit& rhs)
     {
         for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] -= rhs.quantity_magnitudes[i];
+        this->prefix_magnitude -= rhs.prefix_magnitude;
         if (this->symbol != "") this->symbol += "/";
         this->symbol += rhs.symbol;
         return *this;
@@ -93,6 +84,7 @@ typedef struct Unit
     Unit& operator^=(const int& rhs)
     {
         for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] *= rhs;
+        this->prefix_magnitude *= rhs;
         if (this->symbol != "") this->symbol += "^" + std::to_string(rhs);
         return *this;
     }
@@ -105,7 +97,7 @@ typedef struct Unit
 
     std::size_t operator()(const Unit& u) const noexcept
     {
-        return 98347233425474 * std::hash<std::string>{}(u.symbol) % 648189416;
+        return 98347233425474 * std::hash<std::string>{}(u.symbol) % 64818945416 + 89243487432;
     }
 } Unit;
 
@@ -121,7 +113,7 @@ inline std::ostream &operator<<(std::ostream &os, Unit u)
 {
     std::string ret = "(" + u.symbol;
     for (int i = 0; i < 7; i++) ret += ", " + std::to_string(u.quantity_magnitudes[i]);
-    for (int i = 0; i < 7; i++) ret += ", " + std::to_string(u.prefix_magnitudes[i]);
+    ret += ", " + std::to_string(u.prefix_magnitude);
     ret += ")";
 
     return std::operator<<(os, ret);
@@ -131,7 +123,7 @@ inline std::string to_string(Unit u)
 {
     std::string ret = "(" + u.symbol;
     for (int i = 0; i < 7; i++) ret += ", " + std::to_string(u.quantity_magnitudes[i]);
-    for (int i = 0; i < 7; i++) ret += ", " + std::to_string(u.prefix_magnitudes[i]);
+    ret += ", " + std::to_string(u.prefix_magnitude);
     ret += ")";
 
     return ret;
@@ -148,7 +140,6 @@ typedef struct Number
     Number()
     {
         val = 0;
-        //unit;
     }
 
     /**
@@ -157,7 +148,6 @@ typedef struct Number
     Number(num_t _val)
     {
         val = _val;
-        unit = Unit();
     }
 
     Number(num_t _val, Unit _unit)
@@ -165,7 +155,12 @@ typedef struct Number
         val = _val;
         unit = _unit;
     }
-    
+
+    inline bool operator==(const Number& o) const noexcept
+    {
+        return unit == o.unit && val == o.val;
+    }
+
     Number& operator+=(const Number& rhs)
     {
         for (int i = 0; i < 7; i++)

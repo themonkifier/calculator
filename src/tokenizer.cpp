@@ -18,7 +18,8 @@ enum CurrentType current_type(std::string str, int i)
 }
 
 /**
- * @brief Replaces instances of constants (ex. "e", "pi") with their numerical values (3.14159, 2.71828)
+ * @brief Replaces instances of constants (ex. "e", "pi") with their numerical values (3.14159, 2.71828),
+ *  and replaces E or ee (for exponents) with *10^
  * @param input The input string, to be changed
  */
 void replace_constants(std::deque<Token> &tokens)
@@ -40,6 +41,16 @@ void replace_constants(std::deque<Token> &tokens)
                 it = tokens.erase(it);
                 it = tokens.insert(it, Number(M_PI));
                 if (it != tokens.begin() && (it == tokens.begin() || (it - 1)->index() == 0 || std::get<1>(*(it - 1)) == ")")) it = tokens.insert(it, "*");
+            }
+            else if ((std::get<1>(*it) == "E" || std::get<1>(*it) == "ee") && (it == tokens.begin() || (it - 1)->index() == 0
+                    || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
+            {
+                it = tokens.erase(it) - 1;
+                it = tokens.insert(it, "(") + 2;
+                it = tokens.insert(it, "*") + 1;
+                it = tokens.insert(it, Number(10)) + 1;
+                it = tokens.insert(it, "^") + 2;
+                it = tokens.insert(it, ")");
             }
         }
     }
@@ -85,33 +96,38 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
 {
     std::unordered_set<Unit>::iterator unit;
 
+    /* insert "(1" before a unit when it's directly after a unit or operator, and "*1" before a unit when it's after a ")";
+       allows for expressions like "N s" or "N*s", where there are spaces or operators instead of the more explicit "1N*1s" */
     for (auto it = tokens.begin() + 1; it != tokens.end(); it++)
     {
-        if (it->index() == 1 && unit_in_units(Unit(std::get<1>(*it))) && (it - 1)->index() == 1
-        && (unit_in_units(Unit(std::get<1>(*(it - 1)))) || is_operator(std::get<1>(*(it - 1)))))
+        /* first case - "(1" */
+        if (it->index() == 1 && unit_in_units(Unit(std::get<1>(*it))) && (it - 1)->index() == 1)
         {
-            it = tokens.insert(it, {"(", Number(1)}) + 2;
-            // while (unmatched parentheses or ^s)
-            std::size_t parentheses = 0;
-            while (it != tokens.end() && (parentheses > 0 || (it != tokens.end() - 1 && ((it + 1)->index() == 0 || (std::get<1>(*(it + 1)) == "("
-                    || std::get<1>(*(it + 1)) == ")" || std::get<1>(*(it + 1)) == "^")))))
+            if ((unit_in_units(Unit(std::get<1>(*(it - 1)))) || is_operator(std::get<1>(*(it - 1)))))
             {
-                if ((it)->index() == 1 && (std::get<1>(*(it)) == "^"))
+                it = tokens.insert(it, {"(", Number(1)}) + 2;
+                std::size_t parentheses = 0;
+                while (it != tokens.end() && (parentheses > 0 || (it != tokens.end() - 1 && ((it + 1)->index() == 0 || (std::get<1>(*(it + 1)) == "("
+                        || std::get<1>(*(it + 1)) == ")" || std::get<1>(*(it + 1)) == "^")))))
                 {
-                    // it++;
+                    if (std::get<1>(*(it)) == "(")
+                    {
+                        parentheses++;
+                    }
+                    else if (std::get<1>(*(it)) == ")")
+                    {
+                        parentheses--;
+                    }
+                    it++;
                 }
-                else if (std::get<1>(*(it)) == "(")
-                {
-                    parentheses++;
-                }
-                else if (std::get<1>(*(it)) == ")")
-                {
-                    parentheses--;
-                }
-                it++;
+                if (it == tokens.end()) tokens.push_back(")");
+                else it = tokens.insert(it + 1, ")");
             }
-            if (it == tokens.end()) tokens.push_back(")");
-            else it = tokens.insert(it + 1, ")");
+            /* second case - "*1" */
+            else if (std::get<1>(*(it - 1)) == ")")
+            {
+                it = tokens.insert(it, {"*", Number(1)}) + 2;
+            }
         }
     }
 
@@ -144,7 +160,6 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
 
             if (it->index() == 0 && std::get<0>(*it).unit.symbol != "" && (it + 1)->index() == 1 && std::get<1>(*(it + 1)) == "^")
             {
-                // auto unit_it = it;
                 it += 2;
 
                 size_t exponentiations = 1;
@@ -154,9 +169,9 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
                     exponentiations++;
                 }
                 
-                if (it == tokens.end()) throw std::runtime_error("malformed exponentiation with units: you ended with a '^'");
+                if (it == tokens.end()) throw std::runtime_error("you ended with an operator");
                 else if (it->index() != 0)
-                    throw std::runtime_error("malformed exponentiation with units: you tried raising to something that's not a number");
+                    throw std::runtime_error("you tried raising to something that's not a number");
                 
                 num_t num = std::get<0>(*it).val;
 
@@ -207,14 +222,12 @@ std::deque<Token> tokenize(std::string input, PrintFormat &pf)
 
     replace_constants(tokens);
     replace_scalars(tokens);
-    for (auto it_ = tokens.begin(); it_ != tokens.end(); it_++)
-    {
-        if (it_->index() == 0) std::cout << std::get<0>((const std::variant<Number, std::string>&) *it_) << " ";
-        else std::cout << std::get<1>((const std::variant<Number, std::string>&) *it_) << " ";
-    }
-    std::cout << "\n\n" << std::endl;
     combine_numbers_and_units(tokens);
-
+    if (tokens.back().index() == 1)
+    {
+        if (is_operator(std::get<1>(tokens.back()))) throw std::runtime_error("you ended with an operator");
+        else if (is_function(std::get<1>(tokens.back()))) throw std::runtime_error("you ended with a function");
+    }
     return tokens;
 }
 

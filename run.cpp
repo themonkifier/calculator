@@ -8,12 +8,7 @@ int main(int argc, char const *argv[])
 
     PrintFormat pf = PrintFormat::Default;
 
-    std::deque<Token> tokens = tokenize(input, pf);
-
-    std::cout << std::endl;
-
-    tokens = convert_to_rpn(tokens);
-    
+    std::deque<Token> tokens = convert_to_rpn(tokenize(input, pf));
 
     if (pf == PrintFormat::Commas)
     {
@@ -26,8 +21,7 @@ int main(int argc, char const *argv[])
         std::cout.imbue(spaces);
     }
     Number res = simplify_rpn(tokens);
-    std::cout << "\n\n\n";
-    std::cout << res.val << " " << res.unit << std::endl;
+    std::cout << " = " << res.val << " " << res.unit << std::endl;
 
     return 0;
 }

@@ -22,7 +22,7 @@ void setup_units()
     Unit kilogram;
     kilogram.symbol = "kg";
     kilogram.quantity_magnitudes[2] = 1;
-    kilogram.prefix_magnitudes[2] = 3;
+    kilogram.prefix_magnitude = 3;
 
     Unit ampere;
     ampere.symbol = "A";
@@ -158,12 +158,11 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
     // auto it = std::find_if(units.begin(), units.end(), [unit](const Unit& o) {return unit.symbol == o.symbol;});
     if (units_in_symbol.size() < 1) return std::find_if(units.begin(), units.end(), [unit](const Unit& o)
     {
-        // std::cout << unit << " " << o << std::endl;
         for (std::size_t i = 0; i < 7; i++)
         {
-            if (unit.prefix_magnitudes[i] != o.prefix_magnitudes[i]) return false;
+            if (unit.quantity_magnitudes[i] != o.quantity_magnitudes[i]) return false;
         }
-        return true;
+        return unit.prefix_magnitude == o.prefix_magnitude;
     });
     return std::find_if(units.begin(), units.end(), [unit](const Unit& o){return unit.symbol == o.symbol;});
 }
