@@ -144,7 +144,7 @@ void setup_units()
     week = day * 7;
     week.symbol = "week";
 
-    units = {second, meter, gram, kilogram, ampere, degree_kelvin, mole, candela,
+    units = {second, meter, gram, ampere, degree_kelvin, mole, candela,
             radian, steradian, hertz, newton, pascal, joule, watt, coulomb,
             volt, ohm, siemens, weber, tesla, henry, degree_celsius, lumen,
             lux, bequerel, gray, sievert, katal, minute, hour, day, week};

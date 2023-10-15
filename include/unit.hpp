@@ -2,6 +2,7 @@
 #define UNIT_HPP
 
 #include <string>
+#include <cmath>
 
 typedef long double num_t;
 
@@ -34,7 +35,10 @@ struct Unit
     friend Unit operator*(Unit lhs, int rhs);
     friend Unit operator*(int lhs, Unit rhs);
     Unit& operator/=(const Unit& rhs);
+    Unit& operator/=(const int rhs);
     friend Unit operator/(Unit lhs, const Unit& rhs);
+    friend Unit operator/(Unit lhs, int rhs);
+    friend Unit operator/(int lhs, Unit rhs);
     Unit& operator^=(const int& rhs);
     friend Unit operator^(Unit lhs, const int& rhs);
     std::size_t operator()(const Unit& u) const noexcept;
