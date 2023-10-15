@@ -94,7 +94,7 @@ void replace_scalars(std::deque<Token> &tokens)
 
 void combine_numbers_and_units(std::deque<Token> &tokens)
 {
-    std::unordered_set<Unit>::iterator unit;
+    Unit unit;
 
     /* insert "(1" before a unit when it's directly after a unit or operator, and "*1" before a unit when it's after a ")";
        allows for expressions like "N s" or "N*s", where there are spaces or operators instead of the more explicit "1N*1s" */
@@ -133,12 +133,13 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
 
     for (auto it = tokens.begin(); it != tokens.end();)
     {
-        if (it->index() == 1 && (unit = find_unit_in_units(Unit(std::get<1>(*it)))) != nullunit)
+        if (it->index() == 1 
+        && (unit = find_unit_in_units(Unit(std::get<1>(*it)))).symbol != "nullunit")
         {
             if (it != tokens.begin() && (it - 1)->index() == 0)
             {
                 it = tokens.erase(it) - 1; // clear unit
-                std::get<0>(*(it)).unit *= (*unit);
+                std::get<0>(*(it)).unit *= unit;
             }
             else
             {
@@ -148,13 +149,13 @@ void combine_numbers_and_units(std::deque<Token> &tokens)
                     if (it == tokens.begin()) throw std::runtime_error("malformed expression: operator at the beginning of the input");
                     std::string op = std::get<1>(*(it));
                     it = tokens.erase(it) - 1; // clear operator
-                    if (op == "*") std::get<0>(*(it)).unit *= (*unit);
-                    else if (op == "/") std::get<0>(*(it)).unit /= (*unit);
+                    if (op == "*") std::get<0>(*(it)).unit *= unit;
+                    else if (op == "/") std::get<0>(*(it)).unit /= unit;
                 }
-                else if ((find_unit_in_units(Unit(std::get<1>(*(it - 1)))))->symbol != "")
+                else if (find_unit_in_units(Unit(std::get<1>(*(it - 1)))).symbol != "")
                 {
                     it = tokens.erase(it) - 1;
-                    std::get<0>(*(it)).unit *= (*unit);
+                    std::get<0>(*(it)).unit *= unit;
                 }
             }
 

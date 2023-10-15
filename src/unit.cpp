@@ -24,19 +24,16 @@ Unit::Unit(std::string _symbol, num_t _quantity_magnitudes[7], int _prefix_magni
 
 Unit& Unit::operator*=(const Unit& rhs)
 {
-    for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] += rhs.quantity_magnitudes[i];
-    this->prefix_magnitude += rhs.prefix_magnitude;
-    if (this->symbol != "") this->symbol += "*";
-    this->symbol += rhs.symbol;
+    for (int i = 0; i < 7; i++) quantity_magnitudes[i] += rhs.quantity_magnitudes[i];
+    prefix_magnitude *= rhs.prefix_magnitude;
+    if (symbol != "") symbol += "*";
+    symbol += rhs.symbol;
     return *this;
 }
 
-Unit& Unit::operator*=(const int& rhs)
+Unit& Unit::operator*=(const int rhs)
 {
-    // for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] += rhs.quantity_magnitudes[i];
-    this->prefix_magnitude *= rhs;
-    // if (this->symbol != "") this->symbol += "*";
-    // this->symbol += rhs.symbol;
+    prefix_magnitude *= rhs;
     return *this;
 }
 
@@ -46,7 +43,7 @@ Unit operator*(Unit lhs, const Unit& rhs)
     return lhs;
 }
 
-Unit operator*(Unit lhs, const int& rhs)
+Unit operator*(Unit lhs, int rhs)
 {
     lhs *= rhs;
     return lhs;
@@ -60,10 +57,10 @@ Unit operator*(int lhs, Unit rhs)
 
 Unit& Unit::operator/=(const Unit& rhs)
 {
-    for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] -= rhs.quantity_magnitudes[i];
-    this->prefix_magnitude -= rhs.prefix_magnitude;
-    if (this->symbol != "") this->symbol += "/";
-    this->symbol += rhs.symbol;
+    for (int i = 0; i < 7; i++) quantity_magnitudes[i] -= rhs.quantity_magnitudes[i];
+    prefix_magnitude -= rhs.prefix_magnitude;
+    if (symbol != "") symbol += "/";
+    symbol += rhs.symbol;
     return *this;
 }
 
@@ -75,9 +72,9 @@ Unit operator/(Unit lhs, const Unit& rhs)
 
 Unit& Unit::operator^=(const int& rhs)
 {
-    for (int i = 0; i < 7; i++) this->quantity_magnitudes[i] *= rhs;
-    this->prefix_magnitude *= rhs;
-    if (this->symbol != "") this->symbol += "^" + std::to_string(rhs);
+    for (int i = 0; i < 7; i++) quantity_magnitudes[i] *= rhs;
+    prefix_magnitude *= rhs;
+    if (symbol != "") symbol += "^" + std::to_string(rhs);
     return *this;
 }
 

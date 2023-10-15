@@ -1,14 +1,14 @@
 #include "../include/units.hpp"
 #include <iostream>
 
-std::unordered_map<std::string, int> prefixes;
+std::unordered_map<char, int> prefixes;
 std::unordered_set<Unit> units;
 std::unordered_set<Unit>::iterator nullunit;
 
 void setup_units()
 {
-    prefixes = {{"Q", 30}, {"R", 27}, {"Y", 24}, {"Z", 21}, {"E", 18}, {"P", 15}, {"T", 12}, {"G", 9}, {"M", 6}, {"k", 3}, {"h", 2}, {"da", 1},
-                {"d", -1}, {"c", -2}, {"m", -3}, {"μ", -6}, {"n", -9}, {"p", -12}, {"f", -15}, {"a", -18}, {"z", -21}, {"y", -24}, {"r", -27}, {"q", -30}};
+    prefixes = {{'Q', 30}, {'R', 27}, {'Y', 24}, {'Z', 21}, {'E', 18}, {'P', 15}, {'T', 12}, {'G', 9}, {'M', 6}, {'k', 3}, {'h', 2}, {'D', 1},
+                {'d', -1}, {'c', -2}, {'m', -3}, {'u', -6}, {'n', -9}, {'p', -12}, {'f', -15}, {'a', -18}, {'z', -21}, {'y', -24}, {'r', -27}, {'q', -30}};
 
     /* base units */
     Unit second;
@@ -18,11 +18,16 @@ void setup_units()
     Unit meter;
     meter.symbol = "m";
     meter.quantity_magnitudes[1] = 1;
-    
+
+
+    Unit gram;
+    gram.symbol = "g";
+    gram.quantity_magnitudes[2] = 1;
+
     Unit kilogram;
+    kilogram = 1000 * gram;
+    kilogram.prefix_magnitude = 1000;
     kilogram.symbol = "kg";
-    kilogram.quantity_magnitudes[2] = 1;
-    kilogram.prefix_magnitude = 3;
 
     Unit ampere;
     ampere.symbol = "A";
@@ -122,18 +127,36 @@ void setup_units()
     Unit katal;
     katal = mole / second;
     katal.symbol = "kat";
+    
+    Unit minute;
+    minute = second * 60;
+    minute.symbol = "min";
 
-    units = {second, meter, kilogram, ampere, degree_kelvin, mole, candela,
+    Unit hour;
+    hour = minute * 60;
+    hour.symbol = "hr";
+
+    Unit day;
+    day = hour * 24;
+    day.symbol = "day";
+
+    Unit week;
+    week = day * 7;
+    week.symbol = "week";
+
+    units = {second, meter, gram, kilogram, ampere, degree_kelvin, mole, candela,
             radian, steradian, hertz, newton, pascal, joule, watt, coulomb,
-            volt, ohm, siemens, weber, tesla, henry};
+            volt, ohm, siemens, weber, tesla, henry, degree_celsius, lumen,
+            lux, bequerel, gray, sievert, katal, minute, hour, day, week};
     nullunit = units.end();
 }
 
-std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
+Unit find_unit_in_units(Unit unit)
 {
-    std::string symbol = unit.symbol;
-    std::string temp;
-    std::vector<std::string> units_in_symbol;
+    std::string_view symbol = unit.symbol;
+    std::string_view temp;
+    std::vector<std::string_view> units_in_symbol;
+    long long multiplier = 1;
 
     std::size_t i = 0, previous = 0;
     do
@@ -142,8 +165,12 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
         previous = i;
         if (isalpha(symbol[i])) while (i < symbol.size() && isalpha(symbol[i])) i++;
         
-        // if ((temp = symbol.substr(previous, i)) != "asdfhj")
-        temp = symbol.substr(previous, i);
+        if (prefixes.contains(symbol[previous]) && i > previous + 1)
+        {
+            multiplier *= powl(10, prefixes[symbol[previous]]);
+            previous++;
+        }
+        temp = symbol.substr(previous, i - previous + 1);
         units_in_symbol.push_back(temp);
 
         previous = i++;
@@ -151,23 +178,35 @@ std::unordered_set<Unit>::iterator find_unit_in_units(Unit unit)
 
     for (auto unit_to_find : units_in_symbol)
     {
-        if (std::find_if(units.begin(), units.end(), [unit_to_find](const Unit& o){return unit_to_find == o.symbol;}) == nullunit)
-            return nullunit;
+        std::string_view symbol_without_prefix;
+        if (unit_to_find.size() > 1) symbol_without_prefix = std::string_view(unit_to_find).substr(1);
+        if (std::find_if(units.begin(), units.end(), [unit_to_find, symbol_without_prefix](const Unit& o){return unit_to_find == o.symbol || symbol_without_prefix == o.symbol;}) == nullunit)
+            return Unit("nullunit");
     }
 
-    // auto it = std::find_if(units.begin(), units.end(), [unit](const Unit& o) {return unit.symbol == o.symbol;});
-    if (units_in_symbol.size() < 1) return std::find_if(units.begin(), units.end(), [unit](const Unit& o)
+    if (units_in_symbol.size() < 1)
     {
-        for (std::size_t i = 0; i < 7; i++)
-        {
-            if (unit.quantity_magnitudes[i] != o.quantity_magnitudes[i]) return false;
-        }
-        return unit.prefix_magnitude == o.prefix_magnitude;
-    });
-    return std::find_if(units.begin(), units.end(), [unit](const Unit& o){return unit.symbol == o.symbol;});
+        auto res = std::find_if(units.begin(), units.end(), [unit](const Unit& o)
+            {
+                for (std::size_t i = 0; i < 7; i++)
+                {
+                    if (unit.quantity_magnitudes[i] != o.quantity_magnitudes[i]) return false;
+                }
+                return unit.prefix_magnitude == o.prefix_magnitude;
+            });
+        if (res == nullunit) return Unit("nullunit");
+        return multiplier * (*res);
+    }
+    std::string_view symbol_without_prefix;
+    if (unit.symbol.size() > 1) symbol_without_prefix = std::string_view(unit.symbol).substr(1);
+    auto res = std::find_if(units.begin(), units.end(), [unit, symbol_without_prefix](const Unit& o){return unit.symbol == o.symbol || symbol_without_prefix == o.symbol;});
+    if (res == nullunit) return Unit("nullunit");
+    return multiplier * (*res);
 }
 
 bool unit_in_units(Unit unit)
 {
-    return std::find_if(units.begin(), units.end(), [unit](const Unit& o){return unit.symbol == o.symbol;}) != nullunit;
+    std::string_view symbol_without_prefix;
+    if (unit.symbol.size() > 1) symbol_without_prefix = std::string_view(unit.symbol).substr(1);
+    return std::find_if(units.begin(), units.end(), [unit, symbol_without_prefix](const Unit& o){return unit.symbol == o.symbol || symbol_without_prefix == o.symbol;}) != nullunit;
 }

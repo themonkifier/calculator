@@ -2,6 +2,7 @@
 #define NUMBER_HPP
 
 #include <stdexcept>
+#include <cmath>
 
 #include "unit.hpp"
 

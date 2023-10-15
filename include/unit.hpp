@@ -22,16 +22,16 @@ struct Unit
 
     Unit(std::string _symbol, num_t _quantity_magnitudes[7], int _prefix_magnitude);
 
-    inline bool operator==(const Unit& o) const noexcept
+    inline bool operator==(const Unit o) const noexcept
     {
         for (int i = 0; i < 7; i++) if (quantity_magnitudes[i] != o.quantity_magnitudes[i]) return false;
         return symbol == o.symbol && prefix_magnitude == o.prefix_magnitude;
     }
 
     Unit& operator*=(const Unit& rhs);
-    Unit& operator*=(const int& rhs);
+    Unit& operator*=(const int rhs);
     friend Unit operator*(Unit lhs, const Unit& rhs);
-    friend Unit operator*(Unit lhs, const int& rhs);
+    friend Unit operator*(Unit lhs, int rhs);
     friend Unit operator*(int lhs, Unit rhs);
     Unit& operator/=(const Unit& rhs);
     friend Unit operator/(Unit lhs, const Unit& rhs);
