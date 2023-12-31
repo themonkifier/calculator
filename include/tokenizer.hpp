@@ -5,6 +5,7 @@
 #include <iostream> // ?
 
 #include "units.hpp"
+#include "constants.hpp"
 
 /**
  * @brief The current type of a character in the input string

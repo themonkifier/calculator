@@ -1,13 +1,5 @@
 #include "../include/tokenizer.hpp"
 
-#ifndef M_PI
-#define M_PI 3.14159265
-#endif
-
-#ifndef M_E
-#define M_E 2.71828183
-#endif
-
 enum CurrentType current_type(std::string str, int i)
 {
     if (is_number(str.substr(i, 1))) return CurrentType::Number;
@@ -26,32 +18,47 @@ void replace_constants(std::deque<Token> &tokens)
 {
     for (auto it = tokens.begin(); it != tokens.end(); it++)
     {
-        if (it->index() == 1)
+        if (it->index() == 1 && (it == tokens.begin() || (it - 1)->index() == 0 || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
         {
-            if (std::get<1>(*it) == "e" && (it == tokens.begin() || (it - 1)->index() == 0
-                || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
-            {
-                it = tokens.erase(it);
-                it = tokens.insert(it, Number(M_E));
-                if (it != tokens.begin() && (it == tokens.begin() || (it - 1)->index() == 0 || std::get<1>(*(it - 1)) == ")")) it = tokens.insert(it, "*");
+            num_t num;
+
+            switch (std::get<1>(*it)[0]) {
+                case 'e':
+                    num = CONSTS_E;
+                    break;
+                case 'h':
+                    if (std::get<1>(*it).size() > 1) {
+                        num = CONSTS_hbar;
+                        break;
+                    }
+                    num = CONSTS_h;
+                    break;
+                case 'R':
+                    num = CONSTS_R;
+                    break;
+                case 'k':
+                    num = CONSTS_k;
+                    break;
+                case 'p':
+                    num = CONSTS_PI;
+                    break;
             }
-            else if (std::get<1>(*it) == "pi" && (it == tokens.begin() || (it - 1)->index() == 0
-                    || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
-            {
-                it = tokens.erase(it);
-                it = tokens.insert(it, Number(M_PI));
-                if (it != tokens.begin() && (it == tokens.begin() || (it - 1)->index() == 0 || std::get<1>(*(it - 1)) == ")")) it = tokens.insert(it, "*");
+
+            it = tokens.erase(it);
+            it = tokens.insert(it, Number(num));
+            if (it != tokens.begin() && it != tokens.end() - 1 && ((it - 1)->index() == 0 || std::get<1>(*(it - 1)) == ")")) {
+                it = tokens.insert(it, "*");
             }
-            else if ((std::get<1>(*it) == "E" || std::get<1>(*it) == "ee") && (it == tokens.begin() || (it - 1)->index() == 0
-                    || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
-            {
-                it = tokens.erase(it) - 1;
-                it = tokens.insert(it, "(") + 2;
-                it = tokens.insert(it, "*") + 1;
-                it = tokens.insert(it, Number(10)) + 1;
-                it = tokens.insert(it, "^") + 2;
-                it = tokens.insert(it, ")");
-            }
+        }
+        else if (it->index() == 1 && (std::get<1>(*it) == "E" || std::get<1>(*it) == "ee") &&
+                (it == tokens.begin() || (it - 1)->index() == 0 || std::get<1>(*(it - 1)) == "(" || std::get<1>(*(it - 1)) == ")"))
+        {
+            it = tokens.erase(it) - 1;
+            it = tokens.insert(it, "(") + 2;
+            it = tokens.insert(it, "*") + 1;
+            it = tokens.insert(it, Number(10)) + 1;
+            it = tokens.insert(it, "^") + 2;
+            it = tokens.insert(it, ")");
         }
     }
 }
@@ -221,7 +228,17 @@ std::deque<Token> tokenize(std::string input, PrintFormat &pf)
         previous = ++i;
     } while (i < input.size());
 
+    printf("before:\n");
+    for (auto token : tokens) {
+        if (token.index() == 0) std::cout << std::get<0>(token) << std::endl;
+        else std::cout << std::get<1>(token) << std::endl;
+    }
     replace_constants(tokens);
+    printf("after:\n");
+    for (auto token : tokens) {
+        if (token.index() == 0) std::cout << std::get<0>(token) << std::endl;
+        else std::cout << std::get<1>(token) << std::endl;
+    }
     replace_scalars(tokens);
     combine_numbers_and_units(tokens);
     if (tokens.back().index() == 1)
